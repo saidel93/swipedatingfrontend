@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { getPhotoSrc, profileHref } from '@/lib/sanity'
 import type { Profile } from '@/lib/types'
-import { SITE_LOCATION } from '@/lib/site'
+import { makeT, type UiTexts } from '@/lib/fill'
 
-export default function ProfileCard({ p }: { p: Profile }) {
+export default function ProfileCard({ p, texts }: { p: Profile; texts: UiTexts }) {
+  const t = makeT(texts)
   if (!p?._id) return null
 
   const photo = getPhotoSrc(p)
@@ -34,7 +35,7 @@ export default function ProfileCard({ p }: { p: Profile }) {
           src={photo}
           loading="lazy"
           decoding="async"
-          alt={`${p.nom || 'Profil'}, ${p.age || ''} ans`}
+          alt={`${p.nom || ''}, ${t('ageText', { age: p.age })}`}
           style={{
             width: '100%',
             height: '100%',
@@ -87,7 +88,7 @@ export default function ProfileCard({ p }: { p: Profile }) {
                   borderRadius: '50%'
                 }}
               />
-              En ligne
+              {t('cardOnline')}
             </span>
           )}
 
@@ -158,7 +159,7 @@ export default function ProfileCard({ p }: { p: Profile }) {
               whiteSpace: 'nowrap'
             }}
           >
-            📍 {SITE_LOCATION}
+            📍 {t('location')}
           </div>
         </div>
       </div>

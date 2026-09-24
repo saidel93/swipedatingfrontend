@@ -17,7 +17,7 @@ import { notFound } from 'next/navigation'
 import ProfileCard from '@/components/ProfileCard'
 import EmailGate from '@/components/EmailGate'
 import Link from 'next/link'
-import { SITE_LOCATION } from '@/lib/site'
+import { getTexts, makeT, fill, uiOnly } from '@/lib/texts'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,17 +31,19 @@ export async function generateMetadata({
   params: { slug: string }
 }): Promise<Metadata> {
   try {
-    const p = await safeFetch<Profile | null>(PROFILE_BY_SLUG_QUERY, {
-      slug: decodeURIComponent(params.slug),
-    }, null)
+    const [p, tx] = await Promise.all([
+      safeFetch<Profile | null>(PROFILE_BY_SLUG_QUERY, { slug: decodeURIComponent(params.slug) }, null),
+      getTexts(),
+    ])
+    const texts = uiOnly(tx)
 
-    if (!p) return { title: 'Profil introuvable', robots: { index: false } }
+    if (!p) return { title: fill(texts.notFoundTitle, {}, texts), robots: { index: false } }
 
-    const title = getProfileMetaTitle(p)
-    const description = getProfileMetaDesc(p)
+    const title = getProfileMetaTitle(p, texts)
+    const description = getProfileMetaDesc(p, texts)
     const image = getPhotoSrc(p)
 
-    const ogAlt = `${p.nom}, ${p.age} ans`
+    const ogAlt = `${p.nom}, ${fill(texts.ageText, { age: p.age }, texts)}`
     const ogUrl = profileHref(p)
 
     const isPlaceholder = image.startsWith('/placeholder')
@@ -95,6 +97,8 @@ export default async function ProfilePage({
     safeFetch<Profile | null>(PROFILE_BY_SLUG_QUERY, { slug: decodeURIComponent(params.slug) }, null),
     safeFetch<SiteSettings | null>(SETTINGS_QUERY, {}, null),
   ])
+  const texts = uiOnly(await getTexts())
+  const t = makeT(texts)
 
   if (!p) notFound()
 
@@ -140,9 +144,9 @@ export default async function ProfilePage({
 }
 `
 
-  const imgAlt = `${p.nom}, ${p.age} ans`
+  const imgAlt = `${p.nom}, ${t('ageText', { age: p.age })}`
   const h1Text =
-    p.heroTitle || p.tagline || `${p.nom}, ${p.age} ans`
+    p.heroTitle || p.tagline || `${p.nom}, ${t('ageText', { age: p.age })}`
 
   return (
     <div style={{ position: 'relative', zIndex: 1 }}>
@@ -173,7 +177,7 @@ export default async function ProfilePage({
             <h1 className="title">{h1Text}</h1>
 
             <div className="sub">
-              {p.age} ans · 📍 {SITE_LOCATION}
+              {t('ageText', { age: p.age })} · 📍 {t('location')}
               {p.categorie ? (
                 <>
                   {' '}·{' '}
@@ -206,6 +210,7 @@ export default async function ProfilePage({
                 affiliateUrl={affLink}
                 profileName={p.nom}
                 category={p.categorie?.nom}
+                texts={texts}
               />
             </div>
           </div>
@@ -215,12 +220,12 @@ export default async function ProfilePage({
         {similar.length > 0 && (
           <div>
             <h3 className="relatedTitle">
-              Profils similaires
+              {t('profileRelated')}
             </h3>
 
             <div className="relatedGrid">
               {similar.map((r) => (
-                <ProfileCard key={r._id} p={r} />
+                <ProfileCard key={r._id} p={r} texts={texts} />
               ))}
             </div>
           </div>

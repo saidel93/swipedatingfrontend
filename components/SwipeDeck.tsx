@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { makeT, type UiTexts } from '@/lib/fill'
 
 export type SwipeCard = {
   id: string
@@ -30,7 +31,16 @@ const FLY_MS = 280 // exit animation duration
  *  ↑ up    = go to the partner (affiliate) link to chat
  * Works with touch, mouse, the 3 buttons and the keyboard arrows.
  */
-export default function SwipeDeck({ cards, totalProfiles }: { cards: SwipeCard[]; totalProfiles: number }) {
+export default function SwipeDeck({
+  cards,
+  totalProfiles,
+  texts,
+}: {
+  cards: SwipeCard[]
+  totalProfiles: number
+  texts: UiTexts
+}) {
+  const t = makeT(texts)
   const router = useRouter()
   const [index, setIndex] = useState(0)
   const [drag, setDrag] = useState({ x: 0, y: 0 })
@@ -130,14 +140,14 @@ export default function SwipeDeck({ cards, totalProfiles }: { cards: SwipeCard[]
       <div className="sw-wrap">
         <div className="sw-end">
           <div style={{ fontSize: '2.6rem', marginBottom: 10 }}>💫</div>
-          <h3>Vous avez vu tous les profils du moment!</h3>
-          <p>Retrouvez les {totalProfiles} profils dans la page Annonces, ou recommencez.</p>
+          <h3>{t('swipeEndTitle')}</h3>
+          <p>{t('swipeEndText', { count: totalProfiles })}</p>
           <div className="sw-end-actions">
             <Link href="/annonces" className="sw-btn-primary">
-              ❤ Voir tous les profils
+              {t('swipeEndButton')}
             </Link>
             <button type="button" className="sw-btn-ghost" onClick={() => setIndex(0)}>
-              ↺ Recommencer
+              {t('swipeRestart')}
             </button>
           </div>
         </div>
@@ -170,26 +180,26 @@ export default function SwipeDeck({ cards, totalProfiles }: { cards: SwipeCard[]
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
           role="group"
-          aria-label={`${card.name}, ${card.age} ans`}
+          aria-label={`${card.name}, ${t('ageText', { age: card.age })}`}
         >
-          <img src={card.photo} alt={`${card.name}, ${card.age} ans`} draggable={false} />
+          <img src={card.photo} alt={`${card.name}, ${t('ageText', { age: card.age })}`} draggable={false} />
           <div className="sw-shade" />
 
           {/* Stamps */}
           <span className="sw-stamp sw-stamp-like" style={{ opacity: likeOpacity }}>
-            VOIR PROFIL
+            {t('swipeStampLike')}
           </span>
           <span className="sw-stamp sw-stamp-nope" style={{ opacity: nopeOpacity }}>
-            PASSER
+            {t('swipeStampNope')}
           </span>
           <span className="sw-stamp sw-stamp-up" style={{ opacity: upOpacity }}>
-            💬 DISCUTER
+            {t('swipeStampUp')}
           </span>
 
           {/* Badges */}
           <div className="sw-badges">
-            {card.online && <span className="sw-online">● En ligne</span>}
-            {card.verified && <span className="sw-verified">✓ Vérifiée</span>}
+            {card.online && <span className="sw-online">{t('swipeOnline')}</span>}
+            {card.verified && <span className="sw-verified">{t('swipeVerified')}</span>}
           </div>
 
           {/* Info */}
@@ -209,9 +219,9 @@ export default function SwipeDeck({ cards, totalProfiles }: { cards: SwipeCard[]
           {/* First-time help */}
           {showHelp && index === 0 && (
             <div className="sw-help" aria-hidden="true">
-              <span>← Passer</span>
-              <span>↑ Discuter</span>
-              <span>Profil →</span>
+              <span>{t('swipeHelpLeft')}</span>
+              <span>{t('swipeHelpUp')}</span>
+              <span>{t('swipeHelpRight')}</span>
             </div>
           )}
         </div>
@@ -220,22 +230,22 @@ export default function SwipeDeck({ cards, totalProfiles }: { cards: SwipeCard[]
       {/* Buttons */}
       <div className="sw-actions">
         <div className="sw-act-col">
-          <button type="button" className="sw-action sw-nope" onClick={() => swipe('left')} aria-label="Passer">
+          <button type="button" className="sw-action sw-nope" onClick={() => swipe('left')} aria-label={t('swipeBtnNope')}>
             ✕
           </button>
-          <span>Passer</span>
+          <span>{t('swipeBtnNope')}</span>
         </div>
         <div className="sw-act-col">
-          <button type="button" className="sw-action sw-up" onClick={() => swipe('up')} aria-label="Discuter avec elle">
+          <button type="button" className="sw-action sw-up" onClick={() => swipe('up')} aria-label={t('swipeBtnUp')}>
             💬
           </button>
-          <span>Discuter</span>
+          <span>{t('swipeBtnUp')}</span>
         </div>
         <div className="sw-act-col">
-          <button type="button" className="sw-action sw-like" onClick={() => swipe('right')} aria-label="Voir son profil">
+          <button type="button" className="sw-action sw-like" onClick={() => swipe('right')} aria-label={t('swipeBtnLike')}>
             ❤
           </button>
-          <span>Voir profil</span>
+          <span>{t('swipeBtnLike')}</span>
         </div>
       </div>
 

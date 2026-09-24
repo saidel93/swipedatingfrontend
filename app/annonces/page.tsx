@@ -8,6 +8,7 @@ import {
   shuffle,
 } from '@/lib/sanity'
 import ProfileCard from '@/components/ProfileCard'
+import { getTexts, makeT, fill, uiOnly } from '@/lib/texts'
 import type { Profile, Categorie, SiteSettings } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -19,16 +20,14 @@ type SP = { cat?: string; q?: string }
 /* ───────────────────────────────────────────── */
 
 export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
-  const settings = await safeFetch<SiteSettings | null>(SETTINGS_QUERY, {}, null)
+  const tx = await getTexts()
 
-  let title = settings?.annoncesSeoTitle || 'Toutes les annonces – Célibataires au Québec'
-  let description =
-    settings?.annoncesSeoDescription ||
-    'Parcourez des milliers de profils vérifiés partout au Québec.'
+  let title = fill(tx.seoAnnoncesTitle, {}, tx)
+  let description = fill(tx.seoAnnoncesDescription, {}, tx)
 
   if (searchParams.q) {
-    title = `Recherche "${searchParams.q}" – Annonces Québec`
-    description = `Résultats pour "${searchParams.q}" parmi les célibataires du Québec.`
+    title = fill(tx.seoSearchTitle, { q: searchParams.q }, tx)
+    description = fill(tx.seoSearchDescription, { q: searchParams.q }, tx)
   }
 
   return {
@@ -45,10 +44,13 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
 /* ───────────────────────────────────────────── */
 
 export default async function AnnoncesPage({ searchParams }: { searchParams: SP }) {
-  const [allProfiles, cats] = await Promise.all([
+  const [allProfiles, cats, tx] = await Promise.all([
     safeFetch<Profile[]>(ALL_PROFILES_QUERY, {}, []),
     safeFetch<Categorie[]>(ALL_CATEGORIES_QUERY, {}, []),
+    getTexts(),
   ])
+  const texts = uiOnly(tx)
+  const t = makeT(texts)
 
   let profiles = allProfiles
 
@@ -96,13 +98,12 @@ export default async function AnnoncesPage({ searchParams }: { searchParams: SP 
       >
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <h1 style={{ fontSize: '2rem', color: 'white' }}>
-            {activeCat ? `${activeCat.emoji ?? ''} ${activeCat.nom}` : 'Toutes les annonces'}
+            {activeCat ? `${activeCat.emoji ?? ''} ${activeCat.nom}` : t('annoncesTitle')}
           </h1>
 
           <p style={{ color: '#7c8590' }}>
-            {profiles.length} profil{profiles.length > 1 ? 's' : ''} trouvé
-            {profiles.length > 1 ? 's' : ''}
-            {searchParams.q ? ` pour « ${searchParams.q} »` : ''}
+            {t(profiles.length === 1 ? 'countOne' : 'countMany', { count: profiles.length })}
+            {searchParams.q ? ` ${t('searchFor', { q: searchParams.q })}` : ''}
           </p>
         </div>
       </div>
@@ -119,7 +120,7 @@ export default async function AnnoncesPage({ searchParams }: { searchParams: SP 
             }}
           >
             <Link href="/annonces" style={pill(!searchParams.cat)}>
-              Toutes ({allProfiles.length})
+              {t('annoncesAll', { count: allProfiles.length })}
             </Link>
             {cats.map((c) => (
               <Link
@@ -143,14 +144,14 @@ export default async function AnnoncesPage({ searchParams }: { searchParams: SP 
             }}
           >
             {profiles.map((p) => (
-              <ProfileCard key={p._id} p={p} />
+              <ProfileCard key={p._id} p={p} texts={texts} />
             ))}
           </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '80px 0', color: '#7c8590' }}>
-            Aucun profil trouvé.{' '}
+            {t('annoncesEmpty')}{' '}
             <Link href="/annonces" style={{ color: '#fb7185' }}>
-              Voir toutes les annonces
+              {t('annoncesEmptyLink')}
             </Link>
           </div>
         )}

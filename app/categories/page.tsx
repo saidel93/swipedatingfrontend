@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { ALL_CATEGORIES_QUERY, SETTINGS_QUERY, safeFetch } from '@/lib/sanity'
-import { SITE_NAME } from '@/lib/site'
+import { ALL_CATEGORIES_QUERY, safeFetch } from '@/lib/sanity'
+import { getTexts, makeT, fill, uiOnly } from '@/lib/texts'
 import Link from 'next/link'
 import type { Categorie } from '@/lib/types'
 
@@ -11,13 +11,9 @@ export const dynamic = 'force-dynamic'
 /* ───────────────────────────────────────────── */
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await safeFetch<any>(SETTINGS_QUERY, {}, null)
-
-  const title =
-    settings?.categoriesSeoTitle || 'Types de rencontres au Québec – Catégories'
-  const description =
-    settings?.categoriesSeoDescription ||
-    `Choisissez votre type de rencontre au Québec sur ${SITE_NAME} : relation sérieuse, aventure, amitié et plus.`
+  const tx = await getTexts()
+  const title = fill(tx.seoCategoriesTitle, {}, tx)
+  const description = fill(tx.seoCategoriesDescription, {}, tx)
 
   return {
     title,
@@ -28,7 +24,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CategoriesPage() {
-  const cats = await safeFetch<Categorie[]>(ALL_CATEGORIES_QUERY, {}, [])
+  const [cats, tx] = await Promise.all([safeFetch<Categorie[]>(ALL_CATEGORIES_QUERY, {}, []), getTexts()])
+  const t = makeT(uiOnly(tx))
 
   return (
     <div style={{ position: 'relative', zIndex: 1 }}>
@@ -49,9 +46,9 @@ export default async function CategoriesPage() {
           }}
         >
           <span style={{ color: '#3e444d', fontSize: '.78rem' }}>
-            <Link href="/" style={{ color: '#7c8590', textDecoration: 'none' }}>Accueil</Link> ›{' '}
+            <Link href="/" style={{ color: '#7c8590', textDecoration: 'none' }}>{t('breadcrumbHome')}</Link> ›{' '}
             <span style={{ color: '#fb7185' }}>
-              Catégories
+              {t('categoriesBreadcrumb')}
             </span>
           </span>
 
@@ -63,7 +60,7 @@ export default async function CategoriesPage() {
               marginBottom: 6,
             }}
           >
-            Rencontres selon vos préférences
+            {t('categoriesTitle')}
           </h1>
 
           <p
@@ -72,7 +69,7 @@ export default async function CategoriesPage() {
               fontSize: '.9rem',
             }}
           >
-            Trouvez la catégorie parfaite pour vous.
+            {t('categoriesSubtitle')}
           </p>
         </div>
       </div>
@@ -154,7 +151,7 @@ export default async function CategoriesPage() {
                   fontWeight: 700,
                 }}
               >
-                {c.profileCount || 0} profils
+                {t('categoryProfiles', { count: c.profileCount || 0 })}
               </span>
             </Link>
           ))}

@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import { getTexts, makeT, uiOnly } from '@/lib/texts'
 
-export default function NotFound() {
+export default async function NotFound() {
+  const t = makeT(uiOnly(await getTexts()))
   return (
     <div
       style={{
@@ -13,10 +15,8 @@ export default function NotFound() {
       }}
     >
       <div style={{ fontSize: '3.5rem', marginBottom: 12 }}>💔</div>
-      <h1 style={{ color: 'white', fontSize: '2rem', marginBottom: 10 }}>Page introuvable</h1>
-      <p style={{ color: '#7c8590', marginBottom: 28 }}>
-        Ce profil ou cette page n&apos;existe plus. Découvrez d&apos;autres célibataires du Québec.
-      </p>
+      <h1 style={{ color: 'white', fontSize: '2rem', marginBottom: 10 }}>{t('notFoundTitle')}</h1>
+      <p style={{ color: '#7c8590', marginBottom: 28 }}>{t('notFoundText')}</p>
       <Link
         href="/annonces"
         style={{
@@ -29,7 +29,7 @@ export default function NotFound() {
           textDecoration: 'none',
         }}
       >
-        ❤ Voir les annonces
+        {t('notFoundButton')}
       </Link>
     </div>
   )

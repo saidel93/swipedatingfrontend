@@ -1,7 +1,7 @@
 import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 import type { SiteSettings } from './types'
-import { SITE_NAME, SITE_LOCATION } from './site'
+import { fill, type UiTexts } from './fill'
 
 /* ───────────────────────────────────────────── */
 /* SANITY CLIENT (read-only, always fresh)       */
@@ -79,21 +79,18 @@ function firstWords(text: string, n = 20): string {
   return words.length > n ? out + '…' : out
 }
 
-export function getProfileMetaTitle(profile: any): string {
+export function getProfileMetaTitle(profile: any, texts: UiTexts): string {
   if (profile?.seoTitle) return profile.seoTitle
   if (profile?.heroTitle) return profile.heroTitle
   if (profile?.tagline) return profile.tagline.slice(0, 70)
-
-  const nom = profile?.nom || 'Profil'
-  const age = profile?.age ? `, ${profile.age} ans` : ''
-  return `${nom}${age} – Rencontre au ${SITE_LOCATION}`
+  return fill(texts.seoProfileTitle, { name: profile?.nom || '', age: profile?.age ?? '' }, texts)
 }
 
-export function getProfileMetaDesc(profile: any): string {
+export function getProfileMetaDesc(profile: any, texts: UiTexts): string {
   if (profile?.seoDescription) return profile.seoDescription
   if (profile?.bio) return firstWords(profile.bio, 20)
   if (profile?.tagline) return profile.tagline
-  return `Découvrez ${profile?.nom || 'ce profil'} sur ${SITE_NAME}.`
+  return fill(texts.seoProfileDescription, { name: profile?.nom || '' }, texts)
 }
 
 /* ───────────────────────────────────────────── */
@@ -208,16 +205,7 @@ export const CAT_BY_SLUG_QUERY = `
 
 export const SETTINGS_QUERY = `
   *[_type == "settings" && _id == "site-settings"][0]{
-    affiliateUrl,
-    siteName,
-    siteDescription,
-    homeSeoTitle,
-    homeSeoDescription,
-    homeSubtitle,
-    categoriesSeoTitle,
-    categoriesSeoDescription,
-    annoncesSeoTitle,
-    annoncesSeoDescription
+    affiliateUrl
   }
 `
 

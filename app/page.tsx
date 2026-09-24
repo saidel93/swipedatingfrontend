@@ -11,7 +11,7 @@ import {
 } from '@/lib/sanity'
 import SwipeDeck, { type SwipeCard } from '@/components/SwipeDeck'
 import type { Profile, SiteSettings } from '@/lib/types'
-import { SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION } from '@/lib/site'
+import { getTexts, makeT, fill, uiOnly } from '@/lib/texts'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,9 +19,9 @@ export const dynamic = 'force-dynamic'
 const DECK_SIZE = 40
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await safeFetch<SiteSettings | null>(SETTINGS_QUERY, {}, null)
-  const title = settings?.homeSeoTitle || `${SITE_NAME} – ${SITE_TAGLINE}`
-  const description = settings?.homeSeoDescription || settings?.siteDescription || SITE_DESCRIPTION
+  const tx = await getTexts()
+  const title = fill(tx.seoHomeTitle, {}, tx)
+  const description = fill(tx.seoHomeDescription, {}, tx)
   return {
     title: { absolute: title },
     description,
@@ -31,10 +31,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [profiles, settings] = await Promise.all([
+  const [profiles, settings, tx] = await Promise.all([
     safeFetch<Profile[]>(ALL_PROFILES_QUERY, {}, []),
     safeFetch<SiteSettings | null>(SETTINGS_QUERY, {}, null),
+    getTexts(),
   ])
+  const texts = uiOnly(tx)
+  const t = makeT(texts)
 
   // Featured ("vedette") profiles first, then everyone else — all shuffled
   const featured = shuffle(profiles.filter((p) => p.vedette))
@@ -78,7 +81,7 @@ export default async function HomePage() {
               lineHeight: 1.2,
             }}
           >
-            Trouvez votre{' '}
+            {t('heroTitle')}{' '}
             <span
               style={{
                 background: 'linear-gradient(135deg,#fb7185,#e11d48,#c9913a)',
@@ -87,12 +90,11 @@ export default async function HomePage() {
                 fontStyle: 'italic',
               }}
             >
-              Âme Sœur ou votre Plan Cul au Québec
+              {t('heroHighlight')}
             </span>
           </h1>
           <p style={{ maxWidth: 520, margin: '0 auto', color: '#7c8590' }}>
-            {settings?.homeSubtitle ||
-              'Glissez à droite pour voir son profil, vers le haut pour discuter avec elle.'}
+            {t('heroSubtitle')}
           </p>
         </div>
       </section>
@@ -100,20 +102,17 @@ export default async function HomePage() {
       {/* SWIPE */}
       <section style={{ padding: '6px 20px 50px', position: 'relative', zIndex: 1 }}>
         {cards.length > 0 ? (
-          <SwipeDeck cards={cards} totalProfiles={profiles.length} />
+          <SwipeDeck cards={cards} totalProfiles={profiles.length} texts={texts} />
         ) : (
           <div style={{ textAlign: 'center', padding: '40px 0', color: '#7c8590' }}>
-            Aucun profil disponible pour le moment.
+            {t('homeEmpty')}
           </div>
         )}
 
         {/* Where to find all profiles */}
         <div className="all-profiles-note">
-          <span>
-            📋 Tous les profils ({profiles.length}) sont dans la page <strong>Annonces</strong>, avec filtres et
-            recherche.
-          </span>
-          <Link href="/annonces">Voir tous les profils →</Link>
+          <span>{t('allProfilesNote', { count: profiles.length })}</span>
+          <Link href="/annonces">{t('allProfilesButton')}</Link>
         </div>
       </section>
     </div>

@@ -1,17 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { SITE_DOMAIN, SITE_LOCATION } from '@/lib/site'
+import { SITE_DOMAIN } from '@/lib/site'
+import { makeT, type UiTexts } from '@/lib/fill'
 
 type Props = {
   affiliateUrl: string
   profileName: string
   category?: string
+  texts: UiTexts
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
-export default function EmailGate({ affiliateUrl, profileName, category }: Props) {
+export default function EmailGate({ affiliateUrl, profileName, category, texts }: Props) {
+  const t = makeT(texts)
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
@@ -30,7 +33,7 @@ export default function EmailGate({ affiliateUrl, profileName, category }: Props
       window.location.href = affiliateUrl
     } else {
       setLoading(false)
-      setError("Le lien partenaire n'est pas encore configuré.")
+      setError(t('popupErrorLink'))
     }
   }
 
@@ -39,7 +42,7 @@ export default function EmailGate({ affiliateUrl, profileName, category }: Props
     const value = email.trim().toLowerCase()
 
     if (!EMAIL_RE.test(value)) {
-      setError('Veuillez entrer un email valide.')
+      setError(t('popupErrorEmail'))
       return
     }
 
@@ -54,8 +57,8 @@ export default function EmailGate({ affiliateUrl, profileName, category }: Props
           email: value,
           profileName,
           category,
-          city: SITE_LOCATION,
-          country: 'Canada',
+          city: t('location'),
+          country: t('country'),
           website: SITE_DOMAIN,
         }),
       })
@@ -88,7 +91,7 @@ export default function EmailGate({ affiliateUrl, profileName, category }: Props
           cursor: 'pointer',
         }}
       >
-        🔒 Continuer sur la plateforme sécurisée
+        {t('popupButton')}
       </button>
 
       {open && (
@@ -144,13 +147,13 @@ export default function EmailGate({ affiliateUrl, profileName, category }: Props
             </button>
 
             <h2 style={{ color: '#fff', fontSize: '1.7rem', marginBottom: '10px' }}>
-              🔐 Accès Privé Sécurisé
+              {t('popupTitle')}
             </h2>
 
             <p style={{ color: '#cbd5e1', fontSize: '0.95rem', marginBottom: '25px' }}>
-              {profileName} vous attend au {SITE_LOCATION}.
+              {t('popupText', { name: profileName })}
               <br />
-              Confirmez votre email pour accéder immédiatement.
+              {t('popupText2')}
             </p>
 
             <input
@@ -159,7 +162,7 @@ export default function EmailGate({ affiliateUrl, profileName, category }: Props
               autoComplete="email"
               autoFocus
               required
-              placeholder="Entrez votre email privé..."
+              placeholder={t('popupPlaceholder')}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value)
@@ -197,21 +200,21 @@ export default function EmailGate({ affiliateUrl, profileName, category }: Props
                 opacity: loading ? 0.8 : 1,
               }}
             >
-              {loading ? 'Vérification en cours...' : '🔥 Accéder maintenant'}
+              {loading ? t('popupLoading') : t('popupSubmit')}
             </button>
 
             <p style={{ marginTop: '15px', fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.7 }}>
-              ✔ 100% confidentiel
+              {t('popupCheck1')}
               <br />
-              ✔ Aucun spam
+              {t('popupCheck2')}
               <br />
-              ✔ Accès immédiat
+              {t('popupCheck3')}
             </p>
 
             <p style={{ marginTop: '12px', fontSize: '0.68rem', color: '#64748b' }}>
-              En continuant, vous confirmez avoir 18 ans ou plus et acceptez notre{' '}
+              {t('popupConsent')}{' '}
               <a href="/confidentialite" target="_blank" style={{ color: '#94a3b8' }}>
-                politique de confidentialité
+                {t('popupConsentLink')}
               </a>
               .
             </p>

@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { SITE_NAME } from '@/lib/site'
+import { makeT, type UiTexts } from '@/lib/fill'
 
-const LINKS = [
-  { href: '/', label: 'Accueil', icon: '🏠' },
-  { href: '/annonces', label: 'Annonces', icon: '❤' },
-  { href: '/categories', label: 'Catégories', icon: '💖' },
-  { href: '/blog', label: 'Blog', icon: '📝' },
-]
-
-export default function Navbar() {
+export default function Navbar({ texts }: { texts: UiTexts }) {
+  const t = makeT(texts)
+  const LINKS = [
+    { href: '/', label: t('navHome'), icon: '🏠' },
+    { href: '/annonces', label: t('navAnnonces'), icon: '❤' },
+    { href: '/categories', label: t('navCategories'), icon: '💖' },
+    { href: '/blog', label: t('navBlog'), icon: '📝' },
+  ]
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [q, setQ] = useState('')
@@ -86,7 +86,7 @@ export default function Navbar() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {SITE_NAME}
+              {t('siteName')}
             </span>
           </Link>
 
@@ -107,7 +107,7 @@ export default function Navbar() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && search()}
-              placeholder="Rechercher un profil, un intérêt..."
+              placeholder={t('searchPlaceholder')}
               aria-label="Rechercher"
               style={{
                 width: '100%',
@@ -148,7 +148,7 @@ export default function Navbar() {
                 }}
               />
               <span suppressHydrationWarning>
-                {onlineCount !== null ? `${onlineCount} en ligne` : '...'}
+                {onlineCount !== null ? t('onlineText', { count: onlineCount }) : '...'}
               </span>
             </div>
 
@@ -167,7 +167,7 @@ export default function Navbar() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Rejoindre
+              {t('joinButton')}
             </Link>
 
             <button
@@ -234,7 +234,7 @@ export default function Navbar() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && search()}
-              placeholder="🔍 Rechercher un profil..."
+              placeholder={t('searchPlaceholderMobile')}
               aria-label="Rechercher"
               style={{
                 width: '100%',

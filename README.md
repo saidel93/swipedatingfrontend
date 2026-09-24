@@ -1,5 +1,7 @@
 # Swipe Québec — Website (Next.js)
 
+> 🌐 **All texts of the website are editable in Sanity → "Textes du site"** (menu, buttons, swipe, popup, footer, Google titles, legal pages, language & location). No code change needed to translate or copy the site to another city/country — see the studio README.
+
 Dating-directory website for **all of Québec**, organized by **categories** (no cities / regions), with a **Tinder-style swipe** on the home page.
 
 ## 🔥 The swipe (home page)
@@ -8,7 +10,7 @@ Dating-directory website for **all of Québec**, organized by **categories** (no
 |---|---|---|---|
 | Swipe **left** | ✕ | ← | Next profile |
 | Swipe **right** | ❤ | → | Opens her profile page |
-| Swipe **up** | 💬 | ↑ | Goes to your **affiliate link** (the profile's own link, otherwise the global link in ⚙️ Paramètres du site) |
+| Swipe **up** | 💬 | ↑ | Goes to your **affiliate link** (the profile's own link, otherwise the global link in ⚙️ Lien d’affiliation) |
 
 - Works with the finger on phones and with the mouse on computers. No filters.
 - Profiles marked ⭐ **En vedette** in Sanity come first, then all the others, in random order (40 per visit; change `DECK_SIZE` in `app/page.tsx`).
@@ -53,10 +55,11 @@ cp .env.example .env.local   # then fill in the values
 npm run dev                  # http://localhost:3000
 ```
 
-## Change the brand name
+## Change the name / texts
 
-Everything is in **`lib/site.ts`** (`SITE_NAME`, description, location).
-The global affiliate link, home subtitle and SEO titles are edited in Sanity → ⚙️ Paramètres du site.
+Everything is in Sanity → **🌐 Textes du site** (name, location, language, every text).
+The global affiliate link: Sanity → **⚙️ Lien d’affiliation**. Colors and fonts: `app/globals.css`.
+Default texts (used when a field is empty): `lib/texts-defaults.ts`.
 
 ---
 
@@ -112,7 +115,7 @@ Content changes in Sanity (profiles, categories, blog) appear **immediately**, w
 
 ## Checklist after going live
 
-- [ ] Sanity → ⚙️ Paramètres du site → **affiliate link** filled in and published
+- [ ] Sanity → ⚙️ Lien d’affiliation → **affiliate link** filled in and published
 - [ ] Open a profile → click the button → enter an email → you are redirected to the partner
 - [ ] Sanity → 📧 Leads → the email appears there
 - [ ] `https://your-domain/sitemap.xml` lists your profiles

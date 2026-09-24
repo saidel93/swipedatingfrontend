@@ -1,19 +1,23 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ALL_CATEGORIES_QUERY, safeFetch } from '@/lib/sanity'
+import { getTexts, makeT, fill, uiOnly } from '@/lib/texts'
 import type { Categorie } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Tags : rencontres selon vos préférences',
-  description:
-    'Explorez les différentes catégories et trouvez le type de rencontre qui vous correspond.',
-  alternates: { canonical: '/tags' },
+export async function generateMetadata(): Promise<Metadata> {
+  const tx = await getTexts()
+  return {
+    title: fill(tx.seoTagsTitle, {}, tx),
+    description: fill(tx.seoTagsDescription, {}, tx),
+    alternates: { canonical: '/tags' },
+  }
 }
 
 export default async function TagsPage() {
-  const cats = await safeFetch<Categorie[]>(ALL_CATEGORIES_QUERY, {}, [])
+  const [cats, tx] = await Promise.all([safeFetch<Categorie[]>(ALL_CATEGORIES_QUERY, {}, []), getTexts()])
+  const t = makeT(uiOnly(tx))
 
   return (
     <div style={{ position: 'relative', zIndex: 1 }}>
@@ -27,10 +31,10 @@ export default async function TagsPage() {
       >
         <div style={{ maxWidth: 1300, margin: '0 auto', padding: '0 20px' }}>
           <h1 style={{ fontSize: '2rem', color: 'white' }}>
-            Tags : rencontres selon vos préférences
+            {t('tagsTitle')}
           </h1>
           <p style={{ color: '#7c8590' }}>
-            Trouvez une personne qui offre exactement ce que vous cherchez.
+            {t('tagsSubtitle')}
           </p>
         </div>
       </div>
@@ -80,7 +84,7 @@ export default async function TagsPage() {
                 fontSize: '.85rem',
               }}
             >
-              Voir tous les profils →
+              {t('tagsButton')}
             </Link>
           </div>
         ))}

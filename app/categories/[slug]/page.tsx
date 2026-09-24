@@ -8,6 +8,7 @@ import {
   safeFetch,
 } from '@/lib/sanity'
 import ProfileCard from '@/components/ProfileCard'
+import { getTexts, makeT, fill, uiOnly } from '@/lib/texts'
 import type { Profile, Categorie } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -19,12 +20,15 @@ type Params = { slug: string }
 /* ───────────────────────────────────────────── */
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const cat = await safeFetch<Categorie | null>(CAT_BY_SLUG_QUERY, { slug: params.slug }, null)
-  if (!cat) return { title: 'Catégorie introuvable', robots: { index: false } }
+  const [cat, tx] = await Promise.all([
+    safeFetch<Categorie | null>(CAT_BY_SLUG_QUERY, { slug: params.slug }, null),
+    getTexts(),
+  ])
+  if (!cat) return { title: fill(tx.notFoundTitle, {}, tx), robots: { index: false } }
 
-  const title = cat.seoTitle || `${cat.nom} au Québec – Rencontres ${cat.emoji ?? ''}`.trim()
+  const title = cat.seoTitle || fill(tx.seoCategoryTitle, { category: cat.nom, emoji: cat.emoji ?? '' }, tx)
   const description =
-    cat.seoDescription || cat.description || `Trouvez des profils « ${cat.nom} » partout au Québec.`
+    cat.seoDescription || cat.description || fill(tx.seoCategoryDescription, { category: cat.nom }, tx)
   const url = `/categories/${params.slug}`
 
   return {
@@ -45,6 +49,8 @@ export default async function CategoryPage({ params }: { params: Params }) {
     safeFetch<Categorie | null>(CAT_BY_SLUG_QUERY, { slug: params.slug }, null),
     safeFetch<Categorie[]>(ALL_CATEGORIES_QUERY, {}, []),
   ])
+  const texts = uiOnly(await getTexts())
+  const t = makeT(texts)
 
   if (!cat) notFound()
 
@@ -75,11 +81,11 @@ export default async function CategoryPage({ params }: { params: Params }) {
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <span style={{ color: '#3e444d', fontSize: '.78rem' }}>
             <Link href="/" style={{ color: '#7c8590', textDecoration: 'none' }}>
-              Accueil
+              {t('breadcrumbHome')}
             </Link>{' '}
             ›{' '}
             <Link href="/categories" style={{ color: '#7c8590', textDecoration: 'none' }}>
-              Catégories
+              {t('categoriesBreadcrumb')}
             </Link>{' '}
             › <span style={{ color: '#fb7185' }}>{cat.nom}</span>
           </span>
@@ -112,8 +118,7 @@ export default async function CategoryPage({ params }: { params: Params }) {
 
         {/* PROFILES GRID */}
         <p style={{ color: 'white', fontWeight: 600, marginBottom: 20 }}>
-          {profiles.length} profil{profiles.length !== 1 ? 's' : ''} trouvé
-          {profiles.length !== 1 ? 's' : ''}
+          {t(profiles.length === 1 ? 'countOne' : 'countMany', { count: profiles.length })}
         </p>
 
         {profiles.length > 0 ? (
@@ -125,12 +130,12 @@ export default async function CategoryPage({ params }: { params: Params }) {
             }}
           >
             {profiles.map((p) => (
-              <ProfileCard key={p._id} p={p} />
+              <ProfileCard key={p._id} p={p} texts={texts} />
             ))}
           </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '80px 0', color: '#7c8590' }}>
-            Aucun profil dans cette catégorie pour le moment.
+            {t('categoryEmpty')}
           </div>
         )}
 
@@ -147,7 +152,7 @@ export default async function CategoryPage({ params }: { params: Params }) {
                 marginBottom: 14,
               }}
             >
-              Autres catégories
+              {t('categoryOthers')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {otherCats.map((c) => (
@@ -172,7 +177,7 @@ export default async function CategoryPage({ params }: { params: Params }) {
               whiteSpace: 'pre-wrap',
             }}
           >
-            <h2 style={{ color: 'white', marginBottom: 16 }}>À propos de {cat.nom}</h2>
+            <h2 style={{ color: 'white', marginBottom: 16 }}>{t('categoryAbout', { category: cat.nom })}</h2>
             {cat.bottomContent}
           </div>
         )}

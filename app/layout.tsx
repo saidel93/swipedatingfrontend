@@ -2,30 +2,26 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, SITE_TAGLINE } from '@/lib/site'
+import { SITE_URL } from '@/lib/site'
+import { getTexts, fill, uiOnly } from '@/lib/texts'
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: `${SITE_NAME} – ${SITE_TAGLINE}`,
-    template: `%s | ${SITE_NAME}`,
-  },
-  description: SITE_DESCRIPTION,
-  keywords: [
-    'swipe québec',
-    'rencontre québec',
-    'rencontres québec',
-    'célibataires québec',
-    'site de rencontre québec',
-    'rencontre sérieuse québec',
-  ],
-  alternates: { canonical: '/' },
-  openGraph: {
-    siteName: SITE_NAME,
-    locale: 'fr_CA',
-    type: 'website',
-  },
-  robots: { index: true, follow: true },
+export const dynamic = 'force-dynamic'
+
+// Everything below comes from Sanity → "🌐 Textes du site"
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTexts()
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: fill(t.seoHomeTitle, {}, t),
+      template: fill(t.seoTitleTemplate, { page: '%s' }, t),
+    },
+    description: fill(t.seoHomeDescription, {}, t),
+    keywords: t.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean),
+    alternates: { canonical: '/' },
+    openGraph: { siteName: t.siteName, locale: t.ogLocale, type: 'website' },
+    robots: { index: true, follow: true },
+  }
 }
 
 export const viewport: Viewport = {
@@ -34,9 +30,11 @@ export const viewport: Viewport = {
   themeColor: '#0c0f14',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const texts = uiOnly(await getTexts())
+
   return (
-    <html lang="fr-CA">
+    <html lang={texts.htmlLang}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -48,9 +46,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
 
       <body>
-        <Navbar />
+        <Navbar texts={texts} />
         <main>{children}</main>
-        <Footer />
+        <Footer texts={texts} />
       </body>
     </html>
   )
